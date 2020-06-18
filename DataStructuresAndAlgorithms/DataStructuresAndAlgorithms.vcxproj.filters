@@ -18,6 +18,9 @@
     <ClCompile Include="DataStructuresAndAlgorithms.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\tree.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\map.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

@@ -1,174 +1,81 @@
 ﻿#include <iostream>
 
-/*
-ADT 树(tree)
 
+/*
+ADT 图（Graph)
 Data
-    树是由一个根节点和若干棵子树构成。树中结点具有相同数据类型及层次关系
+    顶点的有穷非空集合和边的集合
 
 Operation
-    InitTree(*T):                       构造空树T
-    DestroyTree(*T):                    销毁树T
-    CreateTree(*T,definition):          按Definition 中给出的树的定义来构造树
-    ClearTree(*T):                      若树存在，则将树T清空
-    TreeEmpty(T):                       若T为空树，返回true，否则返回false
-    TreeDepth(T):                       返回T的深度
-    Root(T):                            返回T的根节点
-    Value(T,cur_e):                     cur_e 是树T的一个结点，返回此结点的值
-    Assign(T,cur_e,value):              给树T的结点cur_e 赋值为value
-    Parent(T,cur_e):                    若cur_e 是树T的非根根点，则返回它的双亲，否则返回为空
-    LeftChild(T,cur_e):                 若cur_e 是树T的非叶结点，则返回它的最左孩子，否则返回空
-    RightSibling(T,cur_e):              若cur_e 有右兄弟，则返回它的右兄弟，否则返回空
-    InsertChild(*T,*p,i,c):             其中p指向树T的某个结点，i为所指结点p的度加上1，
-                                        非空树c与T不相交，操作结果为插入c为树T中p指结点的第i棵子树
-    DeleteChild(*T,*p,i):               其中p指向树T的某个结点，i为所指结点p的度
-                                        操作结果为删除T中p所指结点的第i棵子树
+    CreateGraph(*G,V,VR):                       //按照顶点集V和边弧集VR的定义构造图G。
+    DestroyGraph(*G):                           //图G存在则销毁
+    LocateVex(G,u):                             //若图G中存在顶点u，则返回图中的位置
+    GetVex(G,v):                                //返回图G中顶点v的值
+    PutVex(G,v,value):                          //将图G中顶点v赋值value
+    FirstAdjVex(G,*v):                          //返回顶点v的一个邻接顶点，若顶点在G中无邻接顶点返回空
+    NextAdjVex(G,v,*w):                         //返回顶点v相对于顶点w的下一个邻接顶点，若w是v的最后一个邻接点则返回‘空’
+    InsertVex(*G,v):                            //在图G中新增顶点v
+    DeleteVex(*G,v):                            //删除图G中顶点v及其相关的弧
+    InsertArc(*G,v,w):                          //在图G中新增弧<v,w>,若G是无向图，还需要新增对称弧<w,v>
+    DeleteArc(*G,v,w):                          //在图G中删除弧<v,w>,若G是无向图，还需要删除对称弧<w,v>
+    DFSTraverse(G):                             //对图G进行深度优先遍历，在遍历过程对每个顶点调用
+    HFSTraverse(G):                             //对图G进行广度优先遍历，在遍历过程对每个顶点调用
 
 endADT
 */
 
 
-/*树的双亲表示法结点结构定义*/
-constexpr auto MAX_TREE_SIZE = 100;     //宏转换为constexpr
-typedef int TElemType;                  //树结点的数据类型，目前暂定为整型
-typedef struct PTNode                   //结点结构
+
+//邻接矩阵存储结构
+typedef char VertexType;                        //顶点类型应由用户定义
+typedef int EdgeType;                           //边上的权值类型应由用户定义
+constexpr auto MAXVEX = 100;                    //最大顶点数，应由用户定义
+constexpr auto DINFINITY = 65535;               //用65535来代表∞;(INFINITY已有定义)
+typedef struct
 {
-	TElemType data;                     //结点数据
-	int parent;                         //双亲位置
-} PTNode;
+	VertexType vexs[MAXVEX];                    //顶点表
+	EdgeType arc[MAXVEX][MAXVEX];               //邻接矩阵，可看成边表
+	int numVertexes, numEdges;                  //图中当前的顶点数和边数
+} MGraph;
 
-typedef struct                          //树结构
+
+
+
+//建立无向网图的邻接矩阵表示
+void CreateMGraph(MGraph *G)
 {
-	PTNode nodes[MAX_TREE_SIZE];        //结点数组
-	int r, n;                           //根的位置和结点数
-} PTree;
+	int i, j, k, w;
+	printf("输入顶点数和边数:\n");
+	scanf("%d,%d", &G->numVertexes, &G->numEdges);  //输入顶点数和边数
 
-
-
-/*树的孩子表示法结构定义*/
-typedef struct CTNode                   //孩子结点
-{
-	int child;
-	struct CTNode *next;
-} *ChildPtr;
-
-typedef struct                          //表头结构
-{
-	TElemType data;
-	ChildPtr firstchild;
-} CTBox;
-
-typedef struct                          //树结构
-{
-	CTBox nodes[MAX_TREE_SIZE];         //结点数组
-	int r, n;                           //根的位置和结点数
-} CTree;
-
-
-
-/*树的孩子兄弟表示法结构定义*/
-typedef struct CSNode
-{
-	TElemType data;
-	struct CSNode *firstchild, *rightsib;
-} CSNode,*CSTree;
-
-
-
-/*二叉树的二叉链表结点结构定义*/
-typedef struct BiTNode                  //结点结构
-{
-	TElemType data;                     //结点数据
-	struct BiTNode *lchild, *rchild;    //左右孩子指针
-} BiTNode,*BiTree;
-
-
-
-/*二叉树的前序遍历递归算法：中左右*/
-void PreOrderTraverse(BiTree T)
-{
-	if(T == NULL)
+	for(i = 0; i < G->numVertexes; i++)
 	{
-		return;
+		scanf(&G->vexs[i]);                     //读入顶点信息，建立顶点表
 	}
 
-	printf("%c", T->data);              //显示结点数据，可以更改为其他对结点的操作
-	PreOrderTraverse(T->lchild);        //再先序遍历左子树
-	PreOrderTraverse(T->rchild);        //最后先序遍历右子树
-}
-
-
-
-/*二叉树的中序遍历递归算法：左中右*/
-void InOrderTraverse(BiTree T)
-{
-	if(T == NULL)
+	for(i = 0; i < G->numVertexes; i++)
 	{
-		return;
-	}
-
-	InOrderTraverse(T->lchild);         //中序遍历左子树
-	printf("%c", T->data);              //显示结点数据，可以更改为其他对结点的操作
-	InOrderTraverse(T->rchild);         //最后中序遍历右子树
-}
-
-
-
-/*二叉树的后序遍历递归算法：左右中*/
-void PostOrderTraverse(BiTree T)
-{
-	if(T == NULL)
-	{
-		return;
-	}
-
-	PostOrderTraverse(T->lchild);        //先后序遍历左子树
-	PostOrderTraverse(T->rchild);        //再后序遍历右子树
-	printf("%c", T->data);               //显示结点数据，可以更改为其他对结点的操作
-}
-
-
-
-/*按前序输入二叉树中结点的值*/
-/*#表示空树，构造二叉链表表示二叉树T*/
-//C++ 中使用scanf 会报错，因此在项目->项目名称属性->配置属性-> C / C ++->预处理器->预处理器定义->编辑...添加行_CRT_SECURE_NO_WARNINGS
-void CreateBiTree(BiTree *T)
-{
-	TElemType ch;
-	scanf("%c", &ch);
-
-	if(ch == '#')
-	{
-		*T = NULL;
-	}
-	else
-	{
-		*T = (BiTree)malloc(sizeof(BiTNode));
-
-		if(!*T)
+		for(j = 0; j < G->numVertexes; j++)
 		{
-			exit(OVERFLOW);
+			G->arc[i][j] = DINFINITY;          //邻接矩阵初始化
 		}
-
-		(*T)->data = ch;                    //生成根结点
-		CreateBiTree(&(*T)->lchild);        //构造左子树
-		CreateBiTree(&(*T)->rchild);        //构造右子树
 	}
+
+	for(k = 0; k < G->numEdges; k++)            //读入numEdges条边，建立邻接矩阵
+	{
+		printf("输入边（Vi，Vj）上的下标1，下标j和权w:\n");
+		scanf("%d,%d,%d", &i, &j, &w);          //输入边（Vi，Vj）上的权w
+		G->arc[i][j] = w;
+		G->arc[j][i] = G->arc[i][j];            //因为是无向图，矩阵对称
+	}
+
 }
 
 
 
-//二叉树的二叉线索存储结构的定义
-enum PointerTag
-{
-	Linke,                                  //Link == 0     表示指向左右孩子指针
-	Thread                                  //Thread == 1   表示指向前驱或后继的线索
-};
 
-typedef struct BiThrNode                    //二叉线索存储结点结构
-{
-	TElemType data;                         //结点数据
-	struct BiThrNode *lchild, *rchild;      //左右孩子指针
-	PointerTag Ltag;
-	PointerTag RTag;                        //左右标志
-} BiThrNode,*BiThrTree;
+
+
+
+
+
