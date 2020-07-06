@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\map.cpp" />
+    <ClCompile Include="..\src\Search.cpp" />
     <ClCompile Include="..\src\tree.cpp" />
     <ClCompile Include="DataStructuresAndAlgorithms.cpp" />
   </ItemGroup>

@@ -79,6 +79,9 @@ typedef struct BiTNode                  //结点结构
 {
 	TElemType data;                     //结点数据
 	struct BiTNode *lchild, *rchild;    //左右孩子指针
+
+	//平衡二叉树新增
+	int bf;                             //结点的平衡因子
 } BiTNode,*BiTree;
 
 
